@@ -59,7 +59,7 @@
 
   /* ===== 투표 탭 ===== */
   #tab-vote {
-    padding: 12px 20px 10px;
+    padding: 10px 40px 10px;
   }
 
   /* 카운터 */
@@ -235,10 +235,10 @@
     </div>
 
     <div class="svg-wrap">
-      <svg id="assemblySvg" viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <svg id="assemblySvg" viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
         <!-- 의장석 -->
-        <rect x="375" y="420" width="150" height="44" rx="8" fill="#1a3a6e" stroke="#c8993a" stroke-width="2"/>
-        <text x="450" y="448" text-anchor="middle" fill="#c8993a" font-family="Noto Sans KR,sans-serif" font-size="16" font-weight="700">의장석</text>
+        <rect x="375" y="305" width="150" height="40" rx="8" fill="#1a3a6e" stroke="#c8993a" stroke-width="2"/>
+        <text x="450" y="330" text-anchor="middle" fill="#c8993a" font-family="Noto Sans KR,sans-serif" font-size="16" font-weight="700">의장석</text>
         <!-- 의석은 JS로 생성 -->
       </svg>
     </div>
@@ -252,9 +252,12 @@
 
   <!-- 의견 탭 -->
   <div class="tab-panel" id="tab-opinion">
-    <div class="topic-banner">
-      <span>오늘의 토론 주제</span>
-      "촉법소년 연령 기준을 현행 만 14세에서 만 13세로 낮춰야 한다"
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-shrink:0;">
+      <div class="topic-banner" style="margin:0;flex:1;">
+        <span>오늘의 토론 주제</span>
+        "촉법소년 연령 기준을 현행 만 14세에서 만 13세로 낮춰야 한다"
+      </div>
+      <button class="reset-btn" onclick="resetOpinions()" style="flex-shrink:0;white-space:nowrap;">🗑 의견 초기화</button>
     </div>
     <div class="two-col">
       <div class="col-panel">
@@ -324,11 +327,11 @@
   // ===== 의석 배치 =====
   // 반원형: 중심(450, 440), 3줄
   // 번호는 왼쪽→오른쪽, 안쪽→바깥쪽 순서
-  const CX = 450, CY = 440;
+  const CX = 450, CY = 320;
   const ROWS = [
-    { r: 120, count: 4 },
-    { r: 200, count: 6 },
-    { r: 280, count: 6 },
+    { r: 90,  count: 4 },
+    { r: 160, count: 6 },
+    { r: 230, count: 6 },
   ];
 
   (function buildSeats() {
@@ -354,7 +357,7 @@
         g.setAttribute('transform', `translate(${seat.x.toFixed(1)},${seat.y.toFixed(1)})`);
 
         const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        c.setAttribute('r', '30');
+        c.setAttribute('r', '26');
         c.setAttribute('fill', 'rgba(255,255,255,0.07)');
         c.setAttribute('stroke', 'rgba(255,255,255,0.25)');
         c.setAttribute('stroke-width', '2');
@@ -365,7 +368,7 @@
         t.setAttribute('dominant-baseline', 'central');
         t.setAttribute('fill', '#8a9ab5');
         t.setAttribute('font-family', 'Noto Sans KR, sans-serif');
-        t.setAttribute('font-size', '16');
+        t.setAttribute('font-size', '14');
         t.setAttribute('font-weight', '700');
         t.textContent = num;
         t.id = `st-${num}`;
@@ -379,10 +382,10 @@
   })();
 
   const COLORS = {
-    yes:  { fill: '#1e8c45', stroke: '#16703a', text: '#fff', r: '33' },
-    abs:  { fill: '#e6a800', stroke: '#cc9500', text: '#fff', r: '33' },
-    no:   { fill: '#c0392b', stroke: '#a93226', text: '#fff', r: '33' },
-    wait: { fill: 'rgba(255,255,255,0.07)', stroke: 'rgba(255,255,255,0.25)', text: '#8a9ab5', r: '30' },
+    yes:  { fill: '#1e8c45', stroke: '#16703a', text: '#fff', r: '29' },
+    abs:  { fill: '#e6a800', stroke: '#cc9500', text: '#fff', r: '29' },
+    no:   { fill: '#c0392b', stroke: '#a93226', text: '#fff', r: '29' },
+    wait: { fill: 'rgba(255,255,255,0.07)', stroke: 'rgba(255,255,255,0.25)', text: '#8a9ab5', r: '26' },
   };
 
   window.updateSeats = function(data) {
@@ -481,6 +484,14 @@
       col.appendChild(card);
     });
   }
+
+  window.resetOpinions = function() {
+    if (!confirm('의견을 모두 초기화할까요?')) return;
+    if (window._db) {
+      window._remove(window._ref(window._db, 'debate2025/opinions'))
+        .then(() => { window._opinions = {}; window.renderOpinions(); });
+    }
+  };
 
   function toggleLike(key, btn) {
     const op = (window._opinions||{})[key];
