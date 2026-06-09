@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나래반 국회 투표</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  :root {
+    --na-blue: #1a3a6e;
+    --na-gold: #c8993a;
+    --na-light: #eef2f8;
+    --na-green: #1e8c45;
+    --na-yellow: #e6a800;
+    --na-red: #c0392b;
+    --na-gray: #8a9ab5;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--na-blue);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: var(--na-gold);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.3;
+  }
+  .header .topic {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #dce7f5;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* 번호 선택 */
+  .section-title {
+    color: var(--na-gold);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .number-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 28px;
+  }
+
+  .num-btn {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    color: #c5d5ea;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .num-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
+  .num-btn.selected {
+    background: var(--na-gold);
+    border-color: var(--na-gold);
+    color: #fff;
+    transform: scale(1.06);
+    box-shadow: 0 4px 16px rgba(200,153,58,0.5);
+  }
+
+  /* 투표 버튼 */
+  .vote-section {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 28px;
+  }
+
+  .vote-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .vote-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 18px 8px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s;
+    opacity: 0.45;
+  }
+  .vote-btn .icon { font-size: 26px; }
+  .vote-btn .label { font-size: 13px; }
+
+  .vote-btn.active { opacity: 1; transform: scale(1.04); }
+
+  .btn-yes  { background: var(--na-green); color: #fff; }
+  .btn-abs  { background: var(--na-yellow); color: #fff; }
+  .btn-no   { background: var(--na-red); color: #fff; }
+
+  .btn-yes:hover  { background: #17703a; }
+  .btn-abs:hover  { background: #cc9500; }
+  .btn-no:hover   { background: #a93226; }
+
+  /* 제출 버튼 */
+  .submit-btn {
+    width: 100%;
+    max-width: 360px;
+    background: #fff;
+    color: var(--na-blue);
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .submit-btn:not(:disabled):hover { background: #dce7f5; }
+
+  /* 결과 확인 */
+  .done-card {
+    display: none;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+  }
+  .done-card.show { display: block; }
+  .done-icon { font-size: 48px; margin-bottom: 12px; }
+  .done-text { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .done-sub  { color: #aac0df; font-size: 13px; }
+
+  .form-wrap { width: 100%; max-width: 360px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">🏛 나래반 국회 투표</div>
+  <h1>내가 국회의원이라면?</h1>
+  <div class="topic" id="topicText">
+    촉법소년 연령 기준을<br>현행 만 14세에서 <strong>만 13세로 낮춰야 한다</strong>
+  </div>
+</div>
+
+<div class="form-wrap" id="formWrap">
+  <div class="section-title">① 내 번호 선택</div>
+  <div class="number-grid">
+    <!-- 1~16 -->
+  </div>
+
+  <div class="vote-section">
+    <div class="section-title">② 나의 입장</div>
+    <div class="vote-buttons">
+      <button class="vote-btn btn-yes" data-vote="yes" onclick="selectVote(this)">
+        <span class="icon">✅</span>
+        <span class="label">찬성</span>
+      </button>
+      <button class="vote-btn btn-abs" data-vote="abs" onclick="selectVote(this)">
+        <span class="icon">🟡</span>
+        <span class="label">기권</span>
+      </button>
+      <button class="vote-btn btn-no" data-vote="no" onclick="selectVote(this)">
+        <span class="icon">❌</span>
+        <span class="label">반대</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" disabled onclick="submitVote()">
+    🗳 투표하기
+  </button>
+</div>
+
+<div class="done-card" id="doneCard">
+  <div class="done-icon" id="doneIcon">✅</div>
+  <div class="done-text" id="doneText">투표가 등록되었습니다!</div>
+  <div class="done-sub">선생님 화면에서<br>우리 반 결과를 함께 확인해요</div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ★ Firebase 설정 — 선거앱과 동일한 프로젝트 사용 or 새 프로젝트 설정
+    const firebaseConfig = {
+    apiKey: "AIzaSyAhczWNVfjKxJc0L-gsmzY7DPa9qk_Rm2g",
+    authDomain: "narae-vote.firebaseapp.com",
+    databaseURL: "https://narae-vote-default-rtdb.firebaseio.com",
+    projectId: "narae-vote",
+    storageBucket: "narae-vote.firebasestorage.app",
+    messagingSenderId: "130499109130",
+    appId: "1:130499109130:web:d7f677fcd31439df111af3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._db = db;
+  window._ref = ref;
+  window._set = set;
+</script>
+
+<script>
+  // 번호 그리드 생성
+  const grid = document.querySelector('.number-grid');
+  for (let i = 1; i <= 16; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = i;
+    btn.onclick = () => selectNumber(btn, i);
+    grid.appendChild(btn);
+  }
+
+  let selectedNum = null;
+  let selectedVote = null;
+
+  function selectNumber(btn, n) {
+    document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedNum = n;
+    checkReady();
+  }
+
+  function selectVote(btn) {
+    document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedVote = btn.dataset.vote;
+    checkReady();
+  }
+
+  function checkReady() {
+    document.getElementById('submitBtn').disabled = !(selectedNum && selectedVote);
+  }
+
+  function submitVote() {
+    if (!selectedNum || !selectedVote) return;
+    const db = window._db;
+    const dbRef = window._ref;
+    const set = window._set;
+
+    if (!db) {
+      // Firebase 미설정 시 로컬 테스트용
+      showDone();
+      return;
+    }
+
+    set(dbRef(db, `vote2025/seats/${selectedNum}`), selectedVote)
+      .then(showDone)
+      .catch(err => alert('오류: ' + err.message));
+  }
+
+  function showDone() {
+    document.getElementById('formWrap').style.display = 'none';
+    const card = document.getElementById('doneCard');
+    card.classList.add('show');
+
+    const icons = { yes: '✅', abs: '🟡', no: '❌' };
+    const texts = { yes: '찬성으로 투표했습니다!', abs: '기권으로 투표했습니다', no: '반대로 투표했습니다!' };
+    document.getElementById('doneIcon').textContent = icons[selectedVote];
+    document.getElementById('doneText').textContent = texts[selectedVote];
+  }
+
+  // 전역 노출
+  window.selectNumber = selectNumber;
+  window.selectVote = selectVote;
+  window.submitVote = submitVote;
+</script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나래반 국회 — 선생님 화면</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  :root {
+    --blue: #1a3a6e;
+    --blue-dark: #0d2245;
+    --gold: #c8993a;
+    --green: #1e8c45;
+    --red: #c0392b;
+    --yellow: #e6a800;
+    --light: #f5f7fb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--blue-dark);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* 탑 네비 */
+  .nav {
+    background: var(--blue);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid var(--gold);
+  }
+  .nav .emblem { font-size: 24px; }
+  .nav h1 { color: #fff; font-size: 17px; font-weight: 900; flex: 1; }
+
+  .tab-btns { display: flex; gap: 6px; }
+  .tab-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    background: transparent;
+    color: #aac0df;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.14s;
+  }
+  .tab-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+  .main { padding: 20px 20px 60px; }
+
+  /* ===== 탭: 의견 ===== */
+  .topic-banner {
+    background: var(--blue);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    border-left: 4px solid var(--gold);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .topic-banner span { color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+
+  /* 필터 */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #aac0df;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .filter-btn.on { color: #fff; }
+  .filter-btn.f-yes.on  { background: var(--green);  border-color: var(--green); }
+  .filter-btn.f-no.on   { background: var(--red);    border-color: var(--red); }
+  .filter-btn.f-all.on  { background: var(--gold);   border-color: var(--gold); }
+
+  /* 카드 그리드 */
+  .opinion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .op-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .op-card.stance-yes { border-top: 4px solid var(--green); }
+  .op-card.stance-no  { border-top: 4px solid var(--red); }
+
+  .op-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .op-num {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900;
+    flex-shrink: 0;
+  }
+  .op-stance-badge {
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .op-stance-badge.yes { background: #f0faf5; color: var(--green); border: 1px solid var(--green); }
+  .op-stance-badge.no  { background: #fdf2f2; color: var(--red);   border: 1px solid var(--red); }
+
+  .op-text {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.65;
+    margin-bottom: 12px;
+  }
+
+  .op-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .like-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: 0.14s;
+  }
+  .like-btn:hover { background: #fdf2fb; border-color: #f9a8d4; color: #be185d; }
+  .like-btn.liked { background: #fdf2fb; border-color: #f9a8d4; color: #be185d; }
+  .like-btn .heart { font-size: 16px; }
+
+  .no-opinions {
+    text-align: center;
+    padding: 40px;
+    color: #8a9ab5;
+    font-size: 14px;
+  }
+
+  /* ===== 탭: 투표 의석 ===== */
+  .assembly-section {
+    display: none;
+  }
+  .assembly-section.show { display: block; }
+
+  .count-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .cnt-card {
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .cnt-card .n { font-size: 28px; font-weight: 900; }
+  .cnt-card .l { font-size: 12px; margin-top: 3px; opacity: 0.9; }
+  .cc-yes  { background: var(--green); color: #fff; }
+  .cc-abs  { background: var(--yellow); color: #fff; }
+  .cc-no   { background: var(--red); color: #fff; }
+  .cc-wait { background: rgba(255,255,255,0.08); color: #8a9ab5; border: 1px solid rgba(255,255,255,0.12); }
+
+  .svg-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .result-announce {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .announce-btn2 {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    background: var(--gold);
+    color: #fff;
+  }
+  .reset-btn2 {
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #8a9ab5;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* 결과 오버레이 */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay.show { display: flex; }
+  .ov-card {
+    background: var(--blue);
+    border: 2.5px solid var(--gold);
+    border-radius: 22px;
+    padding: 40px 44px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  }
+  .ov-emoji { font-size: 56px; margin-bottom: 14px; }
+  .ov-result { color: var(--gold); font-size: 22px; font-weight: 900; margin-bottom: 10px; }
+  .ov-detail { color: #dce7f5; font-size: 15px; line-height: 1.8; margin-bottom: 22px; white-space: pre-line; }
+  .ov-close {
+    background: var(--gold); color: #fff; border: none;
+    border-radius: 10px; padding: 12px 28px;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+
+  /* 탭 패널 */
+  .tab-panel { display: none; }
+  .tab-panel.show { display: block; }
+
+  .legend-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .leg { display: flex; align-items: center; gap: 6px; color: #8a9ab5; font-size: 12px; }
+  .ld { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
+  .ld-g { background: var(--green); }
+  .ld-y { background: var(--yellow); }
+  .ld-r { background: var(--red); }
+  .ld-w { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="emblem">🏛</div>
+  <h1>나래반 국회 — 선생님 화면</h1>
+  <div class="tab-btns">
+    <button class="tab-btn active" onclick="switchTab('opinion', this)">💬 의견</button>
+    <button class="tab-btn" onclick="switchTab('vote', this)">🗳 투표</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 의견 탭 -->
+  <div class="tab-panel show" id="tab-opinion">
+    <div class="topic-banner">
+      <span>오늘의 토론 주제</span>
+      "촉법소년 연령 기준을 현행 만 14세에서 만 13세로 낮춰야 한다"
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn f-all on" onclick="setFilter('all', this)">전체</button>
+      <button class="filter-btn f-yes" onclick="setFilter('yes', this)">✅ 낮춰야</button>
+      <button class="filter-btn f-no"  onclick="setFilter('no', this)">🚫 반대</button>
+    </div>
+
+    <div class="opinion-grid" id="opinionGrid">
+      <div class="no-opinions">아직 제출된 의견이 없어요</div>
+    </div>
+  </div>
+
+  <!-- 투표 탭 -->
+  <div class="tab-panel" id="tab-vote">
+    <div class="count-row">
+      <div class="cnt-card cc-yes"><div class="n" id="cntYes">0</div><div class="l">✅ 찬성</div></div>
+      <div class="cnt-card cc-abs"><div class="n" id="cntAbs">0</div><div class="l">🟡 기권</div></div>
+      <div class="cnt-card cc-no" ><div class="n" id="cntNo" >0</div><div class="l">❌ 반대</div></div>
+      <div class="cnt-card cc-wait"><div class="n" id="cntWait">16</div><div class="l">⏳ 미투표</div></div>
+    </div>
+
+    <div class="legend-row">
+      <div class="leg"><div class="ld ld-g">✓</div> 찬성</div>
+      <div class="leg"><div class="ld ld-y">−</div> 기권</div>
+      <div class="leg"><div class="ld ld-r">✕</div> 반대</div>
+      <div class="leg"><div class="ld ld-w"></div> 미투표</div>
+    </div>
+
+    <div class="svg-card">
+      <svg viewBox="0 0 600 330" xmlns="http://www.w3.org/2000/svg" id="assemblySvg" style="width:100%">
+        <rect x="240" y="270" width="120" height="40" rx="8" fill="#1a3a6e" stroke="#c8993a" stroke-width="2"/>
+        <text x="300" y="296" text-anchor="middle" fill="#c8993a" font-family="Noto Sans KR, sans-serif" font-size="14" font-weight="700">의장석</text>
+      </svg>
+    </div>
+
+    <div class="result-announce">
+      <button class="announce-btn2" onclick="announce()">📣 결과 발표</button>
+      <button class="reset-btn2" onclick="resetVotes()">초기화</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- 결과 오버레이 -->
+<div class="overlay" id="overlay">
+  <div class="ov-card">
+    <div class="ov-emoji" id="ovEmoji">🗳</div>
+    <div class="ov-result" id="ovResult">결과</div>
+    <div class="ov-detail" id="ovDetail"></div>
+    <button class="ov-close" onclick="document.getElementById('overlay').classList.remove('show')">닫기</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyAhczWNVfjKxJc0L-gsmzY7DPa9qk_Rm2g",
+    authDomain: "narae-vote.firebaseapp.com",
+    databaseURL: "https://narae-vote-default-rtdb.firebaseio.com",
+    projectId: "narae-vote",
+    storageBucket: "narae-vote.firebasestorage.app",
+    messagingSenderId: "130499109130",
+    appId: "1:130499109130:web:d7f677fcd31439df111af3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  window._db = db;
+  window._ref = ref;
+  window._update = update;
+  window._remove = remove;
+
+  // 의견 실시간
+  onValue(ref(db, 'debate2025/opinions'), (snap) => {
+    window._opinions = snap.val() || {};
+    window.renderOpinions();
+  });
+
+  // 투표 실시간
+  onValue(ref(db, 'vote2025/seats'), (snap) => {
+    window.updateSeats(snap.val() || {});
+  });
+</script>
+
+<script>
+  // ======= 탭 =======
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('show'));
+    document.getElementById('tab-' + name).classList.add('show');
+  }
+
+  // ======= 의견 =======
+  let currentFilter = 'all';
+  window._opinions = {};
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    window.renderOpinions();
+  }
+
+  window.renderOpinions = function() {
+    const grid = document.getElementById('opinionGrid');
+    const ops = window._opinions;
+    const keys = Object.keys(ops);
+
+    const filtered = keys.filter(k => {
+      const op = ops[k];
+      if (currentFilter === 'all') return true;
+      return op.stance === currentFilter;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="no-opinions">아직 제출된 의견이 없어요</div>';
+      return;
+    }
+
+    // 하트 많은 순 정렬
+    filtered.sort((a, b) => (ops[b].likes || 0) - (ops[a].likes || 0));
+
+    grid.innerHTML = '';
+    filtered.forEach(k => {
+      const op = ops[k];
+      const card = document.createElement('div');
+      card.className = `op-card stance-${op.stance}`;
+
+      const liked = (window._liked || {})[k];
+      card.innerHTML = `
+        <div class="op-header">
+          <div class="op-num">${op.num}</div>
+          <div class="op-stance-badge ${op.stance}">
+            ${op.stance === 'yes' ? '✅ 낮춰야' : '🚫 반대'}
+          </div>
+        </div>
+        <div class="op-text">${escHtml(op.text)}</div>
+        <div class="op-footer">
+          <button class="like-btn ${liked ? 'liked' : ''}" onclick="toggleLike('${k}', this)">
+            <span class="heart">${liked ? '💙' : '🤍'}</span>
+            <span>${op.likes || 0}</span>
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  };
+
+  window._liked = {};
+
+  function toggleLike(key, btn) {
+    const already = window._liked[key];
+    const op = (window._opinions || {})[key];
+    if (!op) return;
+
+    const newLikes = already ? Math.max(0, (op.likes || 0) - 1) : (op.likes || 0) + 1;
+    window._liked[key] = !already;
+
+    const db = window._db;
+    if (db) {
+      window._update(window._ref(db, `debate2025/opinions/${key}`), { likes: newLikes });
+    } else {
+      op.likes = newLikes;
+      window.renderOpinions();
+    }
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ======= 의석 =======
+  const SEAT_ROWS = [
+    { r: 90,  n: 4,  startAngle: 200, endAngle: 340 },
+    { r: 150, n: 6,  startAngle: 195, endAngle: 345 },
+    { r: 210, n: 6,  startAngle: 195, endAngle: 345 },
+  ];
+  const CX = 300, CY = 280;
+
+  (function buildSeats() {
+    const svg = document.getElementById('assemblySvg');
+    let all = [];
+
+    SEAT_ROWS.forEach(row => {
+      const step = (row.endAngle - row.startAngle) / (row.n - 1);
+      for (let i = 0; i < row.n; i++) {
+        const deg = row.startAngle + step * i;
+        const rad = (deg * Math.PI) / 180;
+        all.push({ x: CX + row.r * Math.cos(rad), y: CY + row.r * Math.sin(rad) });
+      }
+    });
+
+    all.sort((a, b) => a.x - b.x);
+
+    all.forEach((seat, idx) => {
+      const num = idx + 1;
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.id = `seat-${num}`;
+      g.setAttribute('transform', `translate(${seat.x.toFixed(1)},${seat.y.toFixed(1)})`);
+
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('r', '22');
+      c.setAttribute('fill', 'rgba(255,255,255,0.07)');
+      c.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+      c.setAttribute('stroke-width', '1.5');
+      c.id = `sc-${num}`;
+
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'central');
+      t.setAttribute('fill', '#8a9ab5');
+      t.setAttribute('font-family', 'Noto Sans KR, sans-serif');
+      t.setAttribute('font-size', '13');
+      t.setAttribute('font-weight', '700');
+      t.textContent = num;
+      t.id = `st-${num}`;
+
+      g.appendChild(c); g.appendChild(t);
+      svg.appendChild(g);
+    });
+  })();
+
+  const COLORS = {
+    yes:  { fill: '#1e8c45', stroke: '#16703a', text: '#fff', r: '24' },
+    abs:  { fill: '#e6a800', stroke: '#cc9500', text: '#fff', r: '24' },
+    no:   { fill: '#c0392b', stroke: '#a93226', text: '#fff', r: '24' },
+    wait: { fill: 'rgba(255,255,255,0.07)', stroke: 'rgba(255,255,255,0.2)', text: '#8a9ab5', r: '22' },
+  };
+
+  window.updateSeats = function(data) {
+    let yes=0, abs=0, no=0;
+    for (let i=1; i<=16; i++) {
+      const v = data[i] || 'wait';
+      const c = COLORS[v] || COLORS.wait;
+      const sc = document.getElementById(`sc-${i}`);
+      const st = document.getElementById(`st-${i}`);
+      if (sc) { sc.setAttribute('fill',c.fill); sc.setAttribute('stroke',c.stroke); sc.setAttribute('r',c.r); }
+      if (st) { st.setAttribute('fill',c.text); }
+      if (v==='yes') yes++; else if (v==='abs') abs++; else if (v==='no') no++;
+    }
+    const wait = 16-yes-abs-no;
+    document.getElementById('cntYes').textContent  = yes;
+    document.getElementById('cntAbs').textContent  = abs;
+    document.getElementById('cntNo').textContent   = no;
+    document.getElementById('cntWait').textContent = wait;
+    window._vCounts = { yes, abs, no, wait };
+  };
+
+  window.announce = function() {
+    const c = window._vCounts || { yes:0, abs:0, no:0 };
+    const voted = c.yes + c.abs + c.no;
+    let emoji, result, detail;
+
+    if (voted < 16) {
+      emoji='⏳'; result='투표 진행 중'; detail=`현재 ${voted}명 완료\n${16-voted}명 미투표`;
+    } else if (c.yes > c.no) {
+      emoji='✅'; result='찬성 가결!'; detail=`찬성 ${c.yes}명 · 기권 ${c.abs}명 · 반대 ${c.no}명\n\n나래반 국회는 법안을 가결했습니다!`;
+    } else if (c.no > c.yes) {
+      emoji='❌'; result='반대 부결!'; detail=`찬성 ${c.yes}명 · 기권 ${c.abs}명 · 반대 ${c.no}명\n\n나래반 국회는 법안을 부결했습니다.`;
+    } else {
+      emoji='🟡'; result='동수 — 의장 결정 필요!'; detail=`찬성 ${c.yes}명 = 반대 ${c.no}명\n기권 ${c.abs}명`;
+    }
+
+    document.getElementById('ovEmoji').textContent  = emoji;
+    document.getElementById('ovResult').textContent = result;
+    document.getElementById('ovDetail').textContent = detail;
+    document.getElementById('overlay').classList.add('show');
+  };
+
+  window.resetVotes = function() {
+    if (!confirm('투표를 초기화할까요?')) return;
+    const db = window._db;
+    if (db) window._remove(window._ref(db, 'vote2025/seats'))
+             .then(() => window.updateSeats({}));
+    else window.updateSeats({});
+  };
+
+  window.switchTab = switchTab;
+  window.setFilter = setFilter;
+  window.toggleLike = toggleLike;
+</script>
+</body>
+</html>
