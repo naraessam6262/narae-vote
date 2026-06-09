@@ -396,6 +396,7 @@
   }
 
   function showDone() {
+    // 1.5초 후 opinions.html로 이동
     document.getElementById('formArea').style.display = 'none';
     const d = document.getElementById('doneScreen');
     d.classList.add('show');
@@ -409,6 +410,10 @@
       document.getElementById('doneStance').textContent = '낮추면 안 된다 — 반대';
       document.getElementById('doneStance').className   = 'done-stance no';
     }
+
+    setTimeout(() => {
+      window.location.href = 'opinions.html';
+    }, 1500);
   }
 
   window.selectStance = selectStance;
