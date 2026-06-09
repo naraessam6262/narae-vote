@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나래반 — 친구들 의견 보기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  :root {
+    --blue: #1a3a6e; --gold: #c8993a;
+    --green: #1e8c45; --red: #c0392b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f5f7fb;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .top-bar {
+    background: var(--blue);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 2px solid var(--gold);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .top-bar h1 { color: #fff; font-size: 15px; font-weight: 900; flex: 1; }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .live-label { color: #4ade80; font-size: 11px; font-weight: 700; }
+
+  .topic-box {
+    background: var(--blue);
+    margin: 0;
+    padding: 12px 18px;
+    color: #dce7f5;
+    font-size: 13px;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .topic-box strong { color: #f0d998; }
+
+  /* 카운터 */
+  .counter-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1px; background: #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .counter-cell {
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+    background: #fff;
+  }
+  .counter-cell .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-yes { background: var(--green); }
+  .dot-no  { background: var(--red); }
+  .counter-cell .label { font-size: 12px; color: #64748b; font-weight: 700; }
+  .counter-cell .num   { font-size: 18px; font-weight: 900; margin-left: auto; }
+  .num-yes { color: var(--green); }
+  .num-no  { color: var(--red); }
+
+  /* 필터 */
+  .filter-row {
+    display: flex; gap: 8px; padding: 12px 16px;
+    background: #fff; border-bottom: 1px solid #e2e8f0;
+    position: sticky; top: 54px; z-index: 9;
+  }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc; color: #64748b;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .filter-btn.on-all { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .filter-btn.on-yes { background: var(--green); border-color: var(--green); color: #fff; }
+  .filter-btn.on-no  { background: var(--red);   border-color: var(--red);   color: #fff; }
+
+  /* 카드 목록 */
+  .card-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+  .op-card {
+    background: #fff; border-radius: 12px; padding: 14px;
+    border-left: 4px solid #e2e8f0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .op-card.yes { border-left-color: var(--green); }
+  .op-card.no  { border-left-color: var(--red); }
+
+  .op-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .op-num {
+    background: var(--blue); color: #fff; border-radius: 50%;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; flex-shrink: 0;
+  }
+  .op-badge {
+    border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 700;
+  }
+  .badge-yes { background: #f0faf5; color: var(--green); border: 1px solid var(--green); }
+  .badge-no  { background: #fdf2f2; color: var(--red);   border: 1px solid var(--red); }
+
+  .op-text { font-size: 14px; color: #374151; line-height: 1.65; margin-bottom: 10px; }
+
+  .like-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 20px; padding: 6px 14px;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 700; color: #64748b;
+    cursor: pointer; transition: 0.14s;
+  }
+  .like-btn:active { transform: scale(0.95); }
+  .like-btn.liked  { background: #fdf2fb; border-color: #f9a8d4; color: #be185d; }
+
+  .empty { text-align: center; padding: 50px 20px; color: #94a3b8; font-size: 14px; }
+
+  .tip {
+    margin: 0 14px;
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 12px; color: #92400e; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="live-dot"></div>
+  <h1>친구들 의견 보기</h1>
+  <span class="live-label">LIVE</span>
+</div>
+
+<div class="topic-box">
+  촉법소년 연령 기준을 현행 만 14세에서<br>
+  <strong>만 13세로 낮춰야 한다</strong>
+</div>
+
+<div class="counter-row">
+  <div class="counter-cell">
+    <div class="dot dot-yes"></div>
+    <div class="label">낮춰야</div>
+    <div class="num num-yes" id="cntYes">0</div>
+  </div>
+  <div class="counter-cell">
+    <div class="dot dot-no"></div>
+    <div class="label">반대</div>
+    <div class="num num-no" id="cntNo">0</div>
+  </div>
+</div>
+
+<div class="filter-row">
+  <button class="filter-btn on-all" id="fbAll" onclick="setFilter('all')">전체</button>
+  <button class="filter-btn" id="fbYes" onclick="setFilter('yes')">✅ 낮춰야</button>
+  <button class="filter-btn" id="fbNo"  onclick="setFilter('no')">🚫 반대</button>
+</div>
+
+<div class="tip">
+  💡 <strong>근거가 좋은 의견에 하트를 눌러요.</strong> 친해서가 아니라, 생각해볼 만해서!
+</div>
+
+<div class="card-list" id="cardList">
+  <div class="empty">의견을 불러오는 중...</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAhczWNVfjKxJc0L-gsmzY7DPa9qk_Rm2g",
+    authDomain: "narae-vote.firebaseapp.com",
+    databaseURL: "https://narae-vote-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "narae-vote",
+    storageBucket: "narae-vote.firebasestorage.app",
+    messagingSenderId: "130499109130",
+    appId: "1:130499109130:web:d7f677fcd31439df111af3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let allOpinions = {};
+  let liked = JSON.parse(localStorage.getItem('liked_opinions') || '{}');
+  let currentFilter = 'all';
+
+  onValue(ref(db, 'debate2025/opinions'), snap => {
+    allOpinions = snap.val() || {};
+    render();
+  });
+
+  function setFilter(f) {
+    currentFilter = f;
+    document.getElementById('fbAll').className = 'filter-btn' + (f==='all' ? ' on-all' : '');
+    document.getElementById('fbYes').className = 'filter-btn' + (f==='yes' ? ' on-yes' : '');
+    document.getElementById('fbNo').className  = 'filter-btn' + (f==='no'  ? ' on-no'  : '');
+    render();
+  }
+
+  function render() {
+    const keys = Object.keys(allOpinions);
+    const yes = keys.filter(k => allOpinions[k].stance === 'yes').length;
+    const no  = keys.filter(k => allOpinions[k].stance === 'no').length;
+    document.getElementById('cntYes').textContent = yes;
+    document.getElementById('cntNo').textContent  = no;
+
+    const filtered = keys.filter(k =>
+      currentFilter === 'all' || allOpinions[k].stance === currentFilter
+    ).sort((a,b) => (allOpinions[b].likes||0) - (allOpinions[a].likes||0));
+
+    const list = document.getElementById('cardList');
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty">아직 의견이 없어요</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    filtered.forEach(k => {
+      const op = allOpinions[k];
+      const isLiked = !!liked[k];
+      const card = document.createElement('div');
+      card.className = `op-card ${op.stance}`;
+      card.innerHTML = `
+        <div class="op-head">
+          <div class="op-num">${op.num}</div>
+          <div class="op-badge ${op.stance==='yes'?'badge-yes':'badge-no'}">
+            ${op.stance==='yes' ? '✅ 낮춰야' : '🚫 반대'}
+          </div>
+        </div>
+        <div class="op-text">${esc(op.text)}</div>
+        <button class="like-btn ${isLiked?'liked':''}" data-key="${k}">
+          ${isLiked ? '💙' : '🤍'} ${op.likes||0}
+        </button>`;
+      list.appendChild(card);
+    });
+
+    // 하트 버튼 이벤트
+    list.querySelectorAll('.like-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        const op = allOpinions[key];
+        if (!op) return;
+        const already = !!liked[key];
+        const newLikes = already ? Math.max(0,(op.likes||0)-1) : (op.likes||0)+1;
+        liked[key] = !already;
+        if (!liked[key]) delete liked[key];
+        localStorage.setItem('liked_opinions', JSON.stringify(liked));
+        update(ref(db, `debate2025/opinions/${key}`), { likes: newLikes });
+      });
+    });
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.setFilter = setFilter;
+</script>
+</body>
+</html>
